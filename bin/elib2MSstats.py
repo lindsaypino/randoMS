@@ -1,45 +1,17 @@
-import os
 import sys
 import argparse
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, Index
-import shutil
 
 sys.stderr.write('Imported required packages.\n')
 
-##
-## functions required
-##
-
-## read in files
-def read_input(filename):
-    df = pd.read_csv(filename, sep=None, engine="python")
-    return df
-
-# from MoMo
-class SQLparser:
-
-    def __init__(self,input_blib):
-        self._engine = create_engine("sqlite:///%s" % input_blib)
-
-    def get_table_list(self):
-        tables = []
-        return tables
-
-    def get_table_df(self,table_name):
-        #meta = MetaData(self._engine,True)
-        #table_df = None
-        table_df = pd.read_sql(table_name, self._engine)
-        #if meta.tables.has_key(table_name):
-        #    table_df = pd.read_sql(table_name, self._engine)
-        return table_df
 
 
 class SQLreader:
+    """Abstracts reading specific tables and columns from .elib files.
+    """
 
     def get_peptidescores(self, elibpath):
-        sql = SQLparser(elibpath)
-        entry_table = sql.get_table_df("peptidescores")  # "peptidescores" database
+        entry_table = pd.read_sql_table("peptidescores", f"sqlite:///{elibpath}")  # "peptidescores" database
         selected_column = ["PeptideModSeq", "SourceFile", "IsDecoy"]
         pep_table = entry_table[selected_column]
         pep_table = pep_table[pep_table['IsDecoy'] == False]
@@ -48,8 +20,7 @@ class SQLreader:
         return pep_table
     
     def get_peptidetoprotein(self, elibpath):
-        sql = SQLparser(elibpath)
-        entry_table = sql.get_table_df("peptidetoprotein")  # "peptidescores" database
+        entry_table = pd.read_sql_table("peptidetoprotein", f"sqlite:///{elibpath}")  # "peptidescores" database
         selected_column = ["PeptideSeq", "ProteinAccession", "isDecoy"]
         selected_table = entry_table[selected_column]
         selected_table = selected_table[selected_table['isDecoy'] == False]
@@ -58,8 +29,7 @@ class SQLreader:
         return selected_table
     
     def get_peptidequants(self, elibpath):
-        sql = SQLparser(elibpath)
-        entry_table = sql.get_table_df("peptidequants")  # "peptidequants" database
+        entry_table = pd.read_sql_table("peptidequants", f"sqlite:///{elibpath}")  # "peptidequants" database
         selected_column = ["PeptideSeq", "TotalIntensity", "SourceFile", "PrecursorCharge"]
         selected_table = entry_table[selected_column]
         
